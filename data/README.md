@@ -28,4 +28,4 @@ Pre-staged GeoParquet starter tables covering six states (`MS`, `AL`, `GA`, `TX`
 
 ### `historical_facility_closures_10yr.parquet` (38 rows)
 
-- **Provenance:** **Real public organizational records only.** Documented rural hospital closures from the UNC Cecil G. Sheps Center and deactivated Type-2 organizational clinics from CMS NPPES (2016 through 2025).
+- **Provenance:** **Real public organizational records only.** Documented rural hospital closures from the UNC Cecil G. Sheps Center and deactivated Type-2 organizational clinics from CMS NPPES (2016 through 2023).

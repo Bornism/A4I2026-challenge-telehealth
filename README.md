@@ -56,6 +56,8 @@ The whole challenge is: **regional budget question in, attributed tract allocati
 
 Every team shares the same spine: five tract and facility tables, a leakage-free BigQuery ML model trained with `CREATE MODEL`, per-tract feature attributions from `ML.EXPLAIN_PREDICT`, and an ADK planning agent that translates attributions into interventions. **What changes between tracks is the planning lens, not the underlying architecture.**
 
+**These are starting points, not a cage.** Pick one, combine two, or define a sharper rural connectivity and preventive-care allocation workflow in the same vein if you can defend why it matters.
+
 | Track | Planning trigger | Primary decision | What makes it hard |
 |---|---|---|---|
 | 🏥 **After a facility closure** | A rural hospital or clinic shut down (`historical_facility_closures_10yr`) | Triage surrounding tracts losing physical access | Separating neighborhoods where telehealth can absorb demand from offline tracts that need mobile vans |
@@ -129,6 +131,8 @@ Write down your state, your track, and your scenario before opening an editor:
 | **At least one tool you built** | A Python function tool or custom MCP Toolbox tool wrapping `ML.EXPLAIN_PREDICT` and intervention matching |
 | **Deployed to Google Cloud** | Live service running on **Agent Runtime** or **Cloud Run** |
 
+**Also already set up for you, and worth ten seconds now rather than later: Antigravity.** Your Google Skills lab environment includes a button that launches the **Antigravity IDE**, and the **Antigravity CLI** is one word away in Cloud Shell (`agy`). Neither is required, and nothing here depends on them, so do not lose time fighting one if it is not helping, though we strongly recommend using at least one because every lane has tedious boilerplate a coding agent will happily absorb. [Details in Step 3](#strongly-recommended-antigravity-the-ide-and-the-cli).
+
 ### Choosing your MCP server
 
 - **BigQuery's built-in MCP server** handles quick schema inspection and ad-hoc tract queries cleanly.
@@ -171,11 +175,20 @@ See Section 13 of [`notebooks/c_telehealth_01_load_explore.ipynb`](notebooks/c_t
 
 #### Front end lane (2 people)
 
-Start on `adk web` to unblock testing immediately, then choose deliberately between **Gemini Enterprise** (ideal for an internal state planning analyst persona if stated explicitly) or a **custom web UI** displaying tract attributions and intervention tiers.
+Three routes. **Pick deliberately and be ready to say why**, because your interface choice tells judges who you think the user is.
+
+| Option | Strength | Trade-off |
+|---|---|---|
+| **`adk web`** | Fastest. Built in, works immediately, and where you should start | Developer tool look and feel. Fine while building, weak as a final product story unless justified |
+| **Gemini Enterprise** | Clean internal staff UX over Agent Runtime with minimal front-end code | Serves **internal** staff rather than the public (which fits a state broadband or rural-health analyst persona well if stated on purpose) |
+| **Custom web UI** | Full control: an interactive tract allocation table or map displaying `ML.EXPLAIN_PREDICT` drivers beats a raw chat log | Most work by far. Scope tightly so it finishes on time |
+
+- **Do not wait for a working agent.** Mock the response schema now, build against it, and swap in the live endpoint once the agent lane deploys.
+- **Whatever you build, the recorded demo runs on it.** Test it end to end before recording.
 
 #### Story lane (1 to 2 people, starting at minute zero)
 
-Upload **four required artifacts** to `https://portal.angelhack.com/a4i-console` before deadline:
+Upload **four required artifacts** to https://portal.angelhack.com/a4i-console before deadline:
 
 1. **Public GitHub repository link**
 2. **Google Skills project link** (with live deployed agent)
@@ -196,22 +209,91 @@ Your agent should produce a concrete allocation brief a state board could vote o
 
 ### Step 1: Create the team repository
 
-Click **Use this template** -> **Create a new repository** (**Public**) and add all teammates under **Settings -> Collaborators**.
+**Repo owner only.**
+
+1. At the top of this page, click the green **Use this template** button -> **Create a new repository**. *(No button? Use **Fork** and tell a coach.)*
+2. Name it after your team, choose **Public**, and click **Create repository**.
+3. Go to **Settings -> Collaborators** and add every teammate's GitHub username.
+4. Paste the repo URL where everyone on your team can see it.
 
 ### Step 2: Get into your Google Cloud project
 
-Open your shared Google Skills project and coordinate dataset/model naming with your Data lane.
+Follow your facilitator's instructions to open your shared Google Skills project. **There is one project per team.** You all share Owner access and see the same BigQuery datasets, so coordinate dataset, model, and Cloud Run service names.
 
-### Step 3: Everyone: get into Cloud Shell or Antigravity
+### Step 3: Everyone: get into Cloud Shell
 
-Launch Cloud Shell (`>_`) or the preinstalled **Antigravity IDE / `agy` CLI**, clone your team repo, and work on lane branches (`data`, `agent`, `frontend`, `story`).
+**Cloud Shell is where you will work** (alongside your preconfigured Antigravity workstation if provided at your venue). It already has `gcloud`, `bq`, Python, Node, `git`, Docker, and the Antigravity CLI (`agy`) installed.
+
+1. In the Google Cloud console, click the **terminal icon (`>_`) in the top right** so Cloud Shell opens attached to *this* project and browser session.
+2. Clone your team's repository and enter it:
+
+   ```bash
+   git clone https://github.com/YOUR-TEAM/YOUR-REPO.git
+   cd YOUR-REPO
+   ```
+
+3. Open the repository as a workspace in Cloud Shell Editor:
+
+   ```bash
+   cloudshell workspace .
+   ```
+
+#### One repo, one branch per lane
+
+Eight to ten people committing straight to `main` will collide right before submission. Create a branch per lane from minute one:
+
+```bash
+git checkout -b data        # or agent, frontend, story
+```
+
+Merge into `main` whenever your lane has something another lane needs (such as the `ML.EXPLAIN_PREDICT` SQL or the deployed agent URL). Keep your files inside `$HOME` (your cloned repo), because `$HOME` persists across Cloud Shell restarts while directories outside it do not.
+
+Helpful references:
+[Using Cloud Shell](https://docs.cloud.google.com/shell/docs/using-cloud-shell)
+·
+[Cloud Shell Editor overview](https://docs.cloud.google.com/shell/docs/editor-overview)
+
+#### Strongly recommended: Antigravity, the IDE and the CLI
+
+Antigravity is Google's agentic coding environment, already available in two forms:
+
+- **The Antigravity IDE:** Launched from the button in your Google Skills lab environment. It reads your repository, proposes multi-file edits you review before accepting, runs terminal commands, and tests in a browser.
+- **The Antigravity CLI (`agy`):** Preinstalled in Cloud Shell with zero setup:
+
+  ```bash
+  agy
+  ```
+
+  Where it saves the most time in a 4.5-hour sprint:
+  - **Agent lane:** scaffolding ADK boilerplate, wrapping your `ML.EXPLAIN_PREDICT` query inside a Python tool, and drafting Cloud Run deployment configs.
+  - **Data lane:** iterating on leakage-free feature engineering SQL, spatial `ST_DISTANCE` joins, and post-output Equity Audit queries.
+  - **Anyone stuck on an error:** paste the traceback and let it inspect your actual files. Use `/diff` to review pending edits before accepting and `/permissions` to control autonomy.
+
+[Antigravity: getting started](https://antigravity.google/docs/getting-started)
+·
+[IDE overview](https://antigravity.google/docs/ide/overview/)
+·
+[CLI install and auth](https://antigravity.google/docs/cli/install)
+·
+[CLI hands-on codelab](https://codelabs.developers.google.com/antigravity-cli-hands-on)
 
 ### Step 4: Load the data
 
-**Option A: Colab Enterprise / Notebook (Recommended)**
-Import [`notebooks/c_telehealth_01_load_explore.ipynb`](notebooks/c_telehealth_01_load_explore.ipynb), set `STATE` (`MS`, `AL`, `GA`, `TX`, `CA`, or `NY`), and run all cells. Section 2 demonstrates Simpson's paradox across states and `R^2 = 1.0` target leakage, and Section 12 validates every table.
+**Data lane's job.** One person runs it while the other lanes start immediately.
 
-**Option B: Headless CLI Fallback (`scripts/load.sh`)**
+1. In the Google Cloud console, search for **Colab Enterprise** and open it.
+2. **You will be prompted to enable required APIs. Accept them.** When the Colab Enterprise home page loads, it often displays a *second* **Enable APIs** banner at the top. Click that too. Seeing two prompts on a fresh project is expected.
+3. Go to **My Notebooks** -> **Import** -> source **URL**, and paste this raw notebook URL:
+
+   ```text
+   https://raw.githubusercontent.com/Bornism/A4I2026-challenge-telehealth/main/notebooks/c_telehealth_01_load_explore.ipynb
+   ```
+
+   *(If your team modifies the notebook later, get your own copy's raw URL by opening the file on GitHub and clicking **Raw**.)*
+4. Click **Import**, open the notebook, set `STATE` (`MS`, `AL`, `GA`, `TX`, `CA`, or `NY`) in the first code cell, and run the cells top to bottom. Read the markdown explanations between cells: Section 2 demonstrates Simpson's paradox across states and `R^2 = 1.0` target leakage, and Section 12 validates every table.
+
+**Headless CLI Fallback (`scripts/load.sh`):**
+If Colab Enterprise is slow or unavailable, run the headless loader from your cloned repository root in Cloud Shell:
 
 ```bash
 bash scripts/load.sh                 # defaults to MS (Mississippi)
@@ -219,17 +301,19 @@ bash scripts/load.sh CA              # or AL, GA, TX, NY
 bash scripts/load.sh --list          # list all six pre-staged states
 ```
 
+Invoke it with `bash` rather than `./scripts/load.sh` so file permissions never block you. Every run replaces tables cleanly (`--replace`), so switching states or re-running is completely safe.
+
 ### What you'll have
 
-Five validated tables in `<your-project>.a4i_telehealth`:
+Five validated tables in `<your-project>.a4i_telehealth` for your selected state (default `MS` counts shown alongside the 6-state starter pack total):
 
-| Table | Grain | Rows (6-state pack) | Provenance summary |
-|---|---|---:|---|
-| `cdc_tract_health_utilization` | 1 row / census tract | 428 | **100% real empirical** CDC PLACES (`cwsq-ngmh`) checkup gap & chronic burden |
-| `acs_income_and_device_ownership` | 1 row / census tract | 428 | **Real public** US Census ACS internet, cellular-only, device, vehicle, poverty & `audit_*` shares |
-| `fcc_broadband_coverage_by_tract` | 1 row / census tract | 428 | **Modeled** BSL speed-tier counts calibrated to FCC BDC & ACS baselines |
-| `active_health_facilities_registry` | 1 row / organization | 539 | **Real public organizations only** (CMS NPPES Type-2 clinics + HRSA HPSA scores) |
-| `historical_facility_closures_10yr` | 1 row / closure event | 38 | **Real public organizations only** (UNC Sheps Center rural hospital closures & deactivated Type-2 clinics) |
+| Table | Grain | Loaded rows (`MS` default) | 6-state pack total | Provenance summary |
+|---|---|---:|---:|---|
+| `cdc_tract_health_utilization` | 1 row / census tract | 65 | 428 | **100% real empirical** CDC PLACES (`cwsq-ngmh`) checkup gap & chronic burden |
+| `acs_income_and_device_ownership` | 1 row / census tract | 65 | 428 | **Real public** US Census ACS internet, cellular-only, device, vehicle, poverty & `audit_*` shares |
+| `fcc_broadband_coverage_by_tract` | 1 row / census tract | 65 | 428 | **Modeled** BSL speed-tier counts calibrated to FCC BDC & ACS baselines |
+| `active_health_facilities_registry` | 1 row / organization | 90 | 539 | **Real public organizations only** (CMS NPPES Type-2 clinics + HRSA HPSA scores) |
+| `historical_facility_closures_10yr` | 1 row / closure event | 18 | 38 | **Real public organizations only** (UNC Sheps Center rural hospital closures & deactivated Type-2 clinics) |
 
 ---
 
@@ -278,6 +362,8 @@ Never pass `audit_black_share`, `audit_hispanic_share`, `audit_asian_share`, `au
 | ❌ No **unstated license** | Unlicensed web tables cannot be redistributed |
 | ✅ **Public domain, CC0, US Government works** | Safe |
 
+**The license trap most likely to catch you:** anything derived from **OpenStreetMap carries the `ODbL` share-alike license**, and commercial speed-test aggregators (such as proprietary ISP coverage maps) are almost always NonCommercial or all-rights-reserved. Check the license before loading, and ask a coach if you are unsure.
+
 ---
 
 ## What's in this repository
@@ -296,6 +382,12 @@ agent/                                            Empty on purpose. Your ADK age
 
 ## How you'll be judged
 
+**"Finished" is not the goalpost.** Almost nobody completes every stretch idea in 4.5 hours. A team that gets three quarters of the way with clean modeling discipline, genuine `ML.EXPLAIN_PREDICT` attributions, and honest limitations will beat a team that demos something polished and hollow.
+
+**You are judged against the track you chose**, not against a fixed answer key. State your chosen state and track right at the beginning of your deck and video.
+
+**Judges score your submission asynchronously, not a live Q&A.** Put the answers to the questions below directly into your deck and your **<=3-minute pitch video**:
+
 | Dimension | Weight | The question judges are asking |
 |---|---:|---|
 | **Impact & insight** | 30 | Would a state broadband or rural-health planner actually defend this allocation to a grant board? |
@@ -303,6 +395,21 @@ agent/                                            Empty on purpose. Your ADK age
 | **Rigor & judgment** | 25 | Did you avoid target leakage and BSL collinearity, state empirical vs. modeled data honestly, and present quantitative `audit_*` Equity Audit findings? |
 | **Craft & communication** | 15 | Does your <=3-minute video show a crisp live run, and can you defend your interface choice? |
 | **Bonus: range** | **+10** | Thoughtful extensions (cost optimization, BYOD layers, multi-agent workflows) that strengthen the decision |
+
+Bonus sits **on top** of the 100, so ambition never cannibalizes the fundamentals. Nail the core workflow and add nothing extra, and you can still win.
+
+### What "Rigor and judgment" actually means
+
+This is a quarter of your score and the easiest place to stand out:
+
+1. **Data decisions you can defend:** Know plainly that CDC PLACES checkup rates, ACS internet/device counts, and organizational CMS NPPES facilities are empirical public records, whereas `fcc_broadband_coverage_by_tract` is modeled from FCC BDC benchmarks.
+2. **Validation and leakage discipline:** Show `ML.EVALUATE` in your deck or video. An `R^2` of `1.00` on this dataset is a target-leakage bug (`routine_checkup_within_1yr_pct` left in features), not a triumph, and dropping one of the two identical BSL columns avoids splitting `ML.EXPLAIN_PREDICT` weights.
+3. **Bias handling:** Keep `audit_*` columns out of `CREATE MODEL`, run the post-output Equity Audit (`Section 11`), and report actual numbers comparing your prioritized tracts against the state baseline.
+4. **Knowing what virtual care cannot solve:** A tablet cannot replace inpatient emergency care after a rural hospital closure when households also lack vehicles and broadband. Volunteering that boundary shows genuine domain judgment.
+
+### A note on decisions generally
+
+Which state you pick, whether you train on one state or pool states with state centering, how you translate top attributions into intervention tiers, and which UI you build have no single right answer. Judges reward teams who choose on purpose and explain why.
 
 ---
 
